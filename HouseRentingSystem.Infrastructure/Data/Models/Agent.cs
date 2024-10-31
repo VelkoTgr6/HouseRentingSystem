@@ -9,6 +9,7 @@ namespace HouseRentingSystem.Infrastructure.Data.Models
     /// <summary>
     /// House Agent Class
     /// </summary>
+    [Index(nameof(PhoneNumber), IsUnique = true)]
     [Comment("House Agent")]
     public class Agent
     {

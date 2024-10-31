@@ -14,7 +14,7 @@ namespace HouseRentingSystem.Core.Services
             repository = _repository;
         }
 
-        public async Task<IEnumerable<HouseIndexServiceModel>> LastThreeHouses()
+        public async Task<IEnumerable<HouseIndexServiceModel>> LastThreeHousesAsync()
         {
             return await repository.AllReadOnly<House>()
                 .OrderByDescending(h => h.Id)

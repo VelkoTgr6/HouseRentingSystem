@@ -1,7 +1,7 @@
 ﻿using HouseRentingSystem.Core.Contracts;
 using HouseRentingSystem.Core.Models.Agent;
 using Microsoft.AspNetCore.Mvc;
-using HouseRentingSystem.Extensions;
+using System.Security.Claims;
 
 namespace HouseRentingSystem.Controllers
 {

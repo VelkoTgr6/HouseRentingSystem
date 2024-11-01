@@ -1,7 +1,9 @@
-﻿using HouseRentingSystem.Core.Contracts;
+﻿using HouseRentingSystem.Attributes;
+using HouseRentingSystem.Core.Contracts;
 using HouseRentingSystem.Core.Models.Agent;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static HouseRentingSystem.Core.Constants.ErrorConstants;
 
 namespace HouseRentingSystem.Controllers
 {
@@ -15,21 +17,37 @@ namespace HouseRentingSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Become()
+        [InvalidAgent]
+        public IActionResult Become()
         {
-            if (await agentService.ExistByIdAsync(User.GetId()))
-            {
-                return BadRequest("You are already an agent.");
-            }
-
             var model = new BecomeAgentFormModel();
-             
+
             return View(model);
         }
 
         [HttpPost]
+        [InvalidAgent]
         public async Task<IActionResult> Become(BecomeAgentFormModel model)
         {
+            var userId = User.GetId();
+
+            if (await agentService.UserWithPhoneNumberExistAsync(model.PhoneNumber))
+            {
+                ModelState.AddModelError(nameof(model.PhoneNumber), ExistingPhoneNumberMessage);
+            }
+
+            if (await agentService.UserHasRentsAsync(userId))
+            {
+                ModelState.AddModelError("Error", UserHasRentsMessage);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            await agentService.CreateAsync(userId, model.PhoneNumber);
+
             return View(nameof(HouseController.All),"House");
         }
     }

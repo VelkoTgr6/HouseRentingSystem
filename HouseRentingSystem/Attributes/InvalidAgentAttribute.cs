@@ -7,9 +7,9 @@ namespace HouseRentingSystem.Attributes
 {
     public class InvalidAgentAttribute : ActionFilterAttribute
     {
-        public override void OnActionExecuted(ActionExecutedContext context)
+        public override void OnActionExecuting(ActionExecutingContext context)
         { 
-            base.OnActionExecuted(context);
+            base.OnActionExecuting(context);
 
             IAgentService? agentService = context.HttpContext.RequestServices.GetService<IAgentService>();
 
@@ -21,6 +21,7 @@ namespace HouseRentingSystem.Attributes
             if (agentService != null && agentService.ExistByIdAsync(context.HttpContext.User.GetId()).Result)
             {
                 context.Result = new StatusCodeResult(StatusCodes.Status400BadRequest);
+                
             }
         }
     }

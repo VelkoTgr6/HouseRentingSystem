@@ -28,6 +28,14 @@ namespace HouseRentingSystem.Core.Services
                 .AllReadOnly<Agent>()
                 .AnyAsync(a => a.UserId == agentId);
         }
+
+        public async Task<int?> GetAgentIdAsync(string userId)
+        {
+            return (await repository
+                .AllReadOnly<Agent>()
+                .FirstOrDefaultAsync(a => a.UserId == userId))?.Id;
+        }
+
         public async Task<bool> UserHasRentsAsync(string userId)
         {
             return await repository

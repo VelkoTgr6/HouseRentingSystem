@@ -7,5 +7,7 @@
 
         public const string ExistingPhoneNumberMessage = "Phone number already exists. Enter another one.";
         public const string UserHasRentsMessage = "You should have no rents to become an agent!";
+
+        public const string InvalidCategoryMessage = "Category does not exist.";
     }
 }

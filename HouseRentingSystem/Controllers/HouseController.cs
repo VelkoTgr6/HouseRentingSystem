@@ -24,7 +24,7 @@ namespace HouseRentingSystem.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> All([FromQuery]AllHousesQueryModel query)
+        public async Task<IActionResult> All([FromQuery] AllHousesQueryModel query)
         {
             var model = await houseService.AllAsync(
                query.Category,
@@ -32,7 +32,7 @@ namespace HouseRentingSystem.Controllers
                query.Sorting,
                query.CurrentPage,
                query.HousesPerPage);
-            
+
             query.TotalHousesCount = model.TotalHousesCount;
             query.Houses = model.Houses;
             query.Categories = await houseService.AllCategoriesNamesAsync();
@@ -44,11 +44,11 @@ namespace HouseRentingSystem.Controllers
         public async Task<IActionResult> Mine()
         {
             var userId = User.GetId();
-            IEnumerable<HouseServiceModel> model ;
+            IEnumerable<HouseServiceModel> model;
 
             if (await agentService.ExistByIdAsync(userId))
             {
-                var agentId = await  agentService.GetAgentIdAsync(userId) ?? 0;
+                var agentId = await agentService.GetAgentIdAsync(userId) ?? 0;
                 model = await houseService.AllHousesByAgentIdAsync(agentId);
             }
             else
@@ -90,7 +90,7 @@ namespace HouseRentingSystem.Controllers
         {
             if (await houseService.CategoryExistAsync(model.CategoryId) == false)
             {
-                ModelState.AddModelError(nameof(model.CategoryId),InvalidCategoryMessage);
+                ModelState.AddModelError(nameof(model.CategoryId), InvalidCategoryMessage);
             }
 
             if (!ModelState.IsValid)
@@ -114,7 +114,7 @@ namespace HouseRentingSystem.Controllers
                 return BadRequest();
             }
 
-            if (await houseService.HasAgentWithId(id,User.GetId()) == false)
+            if (await houseService.HasAgentWithId(id, User.GetId()) == false)
             {
                 return Unauthorized();
             }
@@ -125,7 +125,7 @@ namespace HouseRentingSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id,HouseFormModel model)
+        public async Task<IActionResult> Edit(int id, HouseFormModel model)
         {
             if (await houseService.ExistAsync(id) == false)
             {
@@ -205,7 +205,7 @@ namespace HouseRentingSystem.Controllers
                 return BadRequest();
             }
 
-            if(await agentService.ExistByIdAsync(User.GetId()))
+            if (await agentService.ExistByIdAsync(User.GetId()))
             {
                 return Unauthorized();
             }
@@ -223,6 +223,19 @@ namespace HouseRentingSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Leave(int id)
         {
+            if (await houseService.ExistAsync(id) == false ||
+                await houseService.IsRentedAsync(id) == false)
+            {
+                return BadRequest();
+            }
+
+            if (await houseService.IsRentedByUserWithIdAsync(id, User.GetId()) == false)
+            {
+                return Unauthorized();
+            }
+
+            await houseService.LeaveAsync(id);
+
             return RedirectToAction(nameof(Mine));
         }
     }

@@ -200,6 +200,23 @@ namespace HouseRentingSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Rent(int id)
         {
+            if (await houseService.ExistAsync(id) == false)
+            {
+                return BadRequest();
+            }
+
+            if(await agentService.ExistByIdAsync(User.GetId()))
+            {
+                return Unauthorized();
+            }
+
+            if (await houseService.IsRentedAsync(id))
+            {
+                return BadRequest();
+            }
+
+            houseService.RentAsync(id, User.GetId());
+
             return RedirectToAction(nameof(Mine));
         }
 

@@ -36,5 +36,10 @@ namespace HouseRentingSystem.Infrastructure.Data.Common
         {
              await DbSet<T>().AddAsync(entity);
         }
+
+        public async Task<T?> GetByIdAsync<T>(object id) where T : class
+        {
+            return await DbSet<T>().FindAsync(id);
+        }
     }
 }

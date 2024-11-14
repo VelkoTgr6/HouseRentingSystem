@@ -29,7 +29,7 @@ namespace HouseRentingSystem.Core.Services
             {
                 string searchTermToLower = searchTerm.ToLower();
 
-                housesQuery = housesQuery.Where(h => h.Title.ToLower().Contains(searchTermToLower) || 
+                housesQuery = housesQuery.Where(h => h.Title.ToLower().Contains(searchTermToLower) ||
                                                h.Description.ToLower().Contains(searchTermToLower) ||
                                                h.Address.ToLower().Contains(searchTermToLower));
             }
@@ -40,7 +40,7 @@ namespace HouseRentingSystem.Core.Services
                     .OrderByDescending(h => h.PricePerMonth),
                 HouseSorting.NotRentedFirst => housesQuery
                     .OrderBy(h => h.RenterId != null)
-                    .ThenByDescending(h=> h.Id),
+                    .ThenByDescending(h => h.Id),
                 _ => housesQuery
                     .OrderByDescending(h => h.Id)
             };
@@ -48,15 +48,7 @@ namespace HouseRentingSystem.Core.Services
             var houses = await housesQuery
                 .Skip((currentPage - 1) * housesPerPage)
                 .Take(housesPerPage)
-                .Select(h => new HouseServiceModel
-                {
-                    Id = h.Id,
-                    Title = h.Title,
-                    Description = h.Description,
-                    ImageUrl = h.ImageUrl,
-                    PricePerMonth = h.PricePerMonth,
-                    IsRented = h.RenterId != null
-                })
+                .ProjectToHouseServiceModel()
                 .ToListAsync();
 
             var totalHousesCount = await housesQuery.CountAsync();
@@ -87,13 +79,29 @@ namespace HouseRentingSystem.Core.Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<HouseServiceModel>> AllHousesByAgentIdAsync(int agentId)
+        {
+            return await repository.AllReadOnly<House>()
+                .Where(h => h.AgentId == agentId)
+                .ProjectToHouseServiceModel()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<HouseServiceModel>> AllHousesByUserIdAsync(string userId)
+        {
+            return await repository.AllReadOnly<House>()
+                .Where(h => h.RenterId == userId)
+                .ProjectToHouseServiceModel()
+                .ToListAsync();
+        }
+
         public async Task<bool> CategoryExistAsync(int categoryId)
         {
             return await repository.AllReadOnly<Category>()
                 .AnyAsync(c => c.Id == categoryId);
         }
 
-        public async Task<int> CreateAsync(HouseFormModel model,int agentId)
+        public async Task<int> CreateAsync(HouseFormModel model, int agentId)
         {
             var house = new House()
             {
@@ -111,6 +119,35 @@ namespace HouseRentingSystem.Core.Services
 
             return house.Id;
         }
+
+        public async Task<bool> ExistAsync(int id)
+        {
+            return await repository.AllReadOnly<House>()
+                .AnyAsync(h => h.Id == id);
+        }
+
+        public async Task<HouseDetailsServiceModel> HouseDetailsByIdAsync(int houseId)
+        {
+            return await repository.AllReadOnly<House>()
+                .Where(h => h.Id == houseId)
+                .Select(h => new HouseDetailsServiceModel()
+                {
+                    Id = h.Id,
+                    Title = h.Title,
+                    Agent = new Models.Agent.AgentServiceModel()
+                    {
+                        Email = h.Agent.User.Email ?? string.Empty,
+                        PhoneNumber = h.Agent.PhoneNumber
+                    },
+                    Description = h.Description,
+                    ImageUrl = h.ImageUrl,
+                    PricePerMonth = h.PricePerMonth,
+                    Address = h.Address,
+                    Category = h.Category.Name,
+                    IsRented = h.RenterId != null
+                })
+                .FirstAsync();
+        } 
 
         public async Task<IEnumerable<HouseIndexServiceModel>> LastThreeHousesAsync()
         {
